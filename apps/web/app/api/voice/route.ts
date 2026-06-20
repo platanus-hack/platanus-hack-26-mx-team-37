@@ -4,8 +4,11 @@
 // a non-200 so the client falls back to the browser's speech synthesis.
 
 const TTS_URL = 'https://api.elevenlabs.io/v1/text-to-speech';
-// "Roger" — a premade multilingual voice available on every account. Override via env.
-const DEFAULT_VOICE = 'CwhRBWXzGAHq8TQ4Fs17';
+// Voice per language so the accent matches the UI selector:
+//   es → "Jose" (es-MX, neutral Mexican)   ·   en → "River" (en-US, neutral American)
+// Both overridable via env. The multilingual model lets each native voice carry its accent.
+const VOICE_ES = process.env.ELEVENLABS_VOICE_ID_ES || 'RCQLic2ghPCdlcNkxN9R';
+const VOICE_EN = process.env.ELEVENLABS_VOICE_ID_EN || 'SAz9YHcvj6GT2YYXdXww';
 const DEFAULT_MODEL = 'eleven_multilingual_v2';
 
 export async function POST(req: Request): Promise<Response> {
@@ -13,15 +16,17 @@ export async function POST(req: Request): Promise<Response> {
   if (!key) return Response.json({ error: 'voice disabled' }, { status: 503 });
 
   let text = '';
+  let lang: 'es' | 'en' = 'es';
   try {
-    const body = (await req.json()) as { text?: string };
+    const body = (await req.json()) as { text?: string; lang?: string };
     text = (body.text ?? '').slice(0, 600); // cap to protect the character quota
+    if (body.lang === 'en') lang = 'en';
   } catch {
     return Response.json({ error: 'invalid body' }, { status: 400 });
   }
   if (!text.trim()) return Response.json({ error: 'text required' }, { status: 400 });
 
-  const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE;
+  const voiceId = lang === 'en' ? VOICE_EN : VOICE_ES;
   const modelId = process.env.ELEVENLABS_MODEL_ID || DEFAULT_MODEL;
 
   const upstream = await fetch(`${TTS_URL}/${voiceId}`, {

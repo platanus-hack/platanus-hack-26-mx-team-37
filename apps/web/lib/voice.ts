@@ -8,7 +8,7 @@
 /** Speak arbitrary text aloud. ElevenLabs first, browser speech-synthesis fallback. */
 export function speak(text: string, lang: 'es' | 'en' = 'es'): void {
   if (typeof window === 'undefined' || !text.trim()) return;
-  void playElevenLabs(text).catch(() => speakBrowser(text, lang));
+  void playElevenLabs(text, lang).catch(() => speakBrowser(text, lang));
 }
 
 /** Spoken incident alert (kept for existing callers). */
@@ -32,11 +32,11 @@ export function playAlert(): void {
   }
 }
 
-async function playElevenLabs(text: string): Promise<void> {
+async function playElevenLabs(text: string, lang: 'es' | 'en'): Promise<void> {
   const res = await fetch('/api/voice', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text, lang }),
   });
   if (!res.ok) throw new Error(`voice route ${res.status}`);
   const blob = await res.blob();
