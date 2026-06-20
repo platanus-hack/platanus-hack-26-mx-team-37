@@ -3,3 +3,4 @@
 
 export * from './claude-code-hook.js';
 export * from './guard.js';
+export type * from './types.js';

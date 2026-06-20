@@ -103,7 +103,8 @@ const HOOK = `// .claude/settings.json — one-line Claude Code hook
   }
 }`;
 
-const SDK = `import { Guard } from '@specter/sdk';
+const SDK = `// npm i specter-sdk
+import { Guard } from 'specter-sdk';
 
 const guard = new Guard({ apiUrl: process.env.SPECTER_API_URL!, apiKey: process.env.SPECTER_API_KEY! });
 
@@ -228,7 +229,7 @@ export default function Docs() {
             <li>
               • <span className="text-ink">{t.integrationsLabel}</span>
               {t.integrationsBefore}
-              <span className="mono">@specter/sdk</span>
+              <span className="mono">specter-sdk</span>
               {t.integrationsAfter}
             </li>
             <li>

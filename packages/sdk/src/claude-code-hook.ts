@@ -1,5 +1,5 @@
-import type { Action, ActionType, DestinationOrigin } from '@specter/core';
 import type { Guard } from './guard.js';
+import type { Action, ActionType, DestinationOrigin } from './types.js';
 
 /** Claude Code PreToolUse hook payload (subset). */
 export interface HookPayload {

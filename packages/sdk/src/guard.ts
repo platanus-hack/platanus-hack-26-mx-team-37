@@ -1,4 +1,4 @@
-import type { Action, Context, DecisionResult } from '@specter/core';
+import type { Action, Context, DecisionResult } from './types.js';
 
 export interface GuardOptions {
   apiUrl: string;

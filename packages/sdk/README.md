@@ -1,12 +1,18 @@
-# @specter/sdk
+# specter-sdk
 
-The thin "plug" that connects an agent's actions to the Specter decision API. The
-API is the product; this is ~150 lines of glue.
+The thin "plug" that connects an agent's actions to the
+[Specter](https://specter-ia.vercel.app) decision API — *detect → block → prove*
+for AI-agent payments. The API is the product; this is ~150 lines of glue.
+**Zero dependencies.**
+
+```bash
+npm i specter-sdk
+```
 
 ## Programmatic gate
 
 ```ts
-import { Guard } from '@specter/sdk';
+import { Guard } from 'specter-sdk';
 
 const guard = new Guard({
   apiUrl: process.env.SPECTER_API_URL!, // e.g. https://specter-decision-api.fly.dev
@@ -73,7 +79,7 @@ Point Claude Code's PreToolUse hook at the API's `/hooks/claude-code` route.
 ### Option B — host the handler yourself
 
 ```ts
-import { Guard, createClaudeCodeHook } from '@specter/sdk';
+import { Guard, createClaudeCodeHook } from 'specter-sdk';
 
 const guard = new Guard({ apiUrl, apiKey });
 const handle = createClaudeCodeHook(guard);
