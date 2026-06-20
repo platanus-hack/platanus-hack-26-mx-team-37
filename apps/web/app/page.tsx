@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { CrashTest } from '@/components/CrashTest';
 import { Diagram } from '@/components/Diagram';
+import { LiveAgents } from '@/components/LiveAgents';
 import { Card, Pill, Section, SectionHead, Stat } from '@/components/ui';
 import { useLang } from '@/lib/i18n';
 
@@ -24,7 +24,7 @@ const COPY = {
     heroBadge1: 'Responde en menos de medio segundo',
     heroBadge2: '·  Funciona con cualquier agente',
     heroBadge3: '·  Pagas solo por lo que usas',
-    heroCaption: 'Crash test real. Apaga la protección y mira cómo el dinero se esfuma.',
+    heroCaption: 'Agente real: scrapea la página de verdad y Specter decide en Fly. Dale a Correr.',
 
     stats: [
       {
@@ -116,7 +116,7 @@ const COPY = {
     heroBadge1: 'Answers in under half a second',
     heroBadge2: '·  Works with any agent',
     heroBadge3: '·  Pay only for what you use',
-    heroCaption: 'Real crash test. Turn protection off and watch the money vanish.',
+    heroCaption: 'Real agent: it actually scrapes the page and Specter decides on Fly. Hit Run.',
 
     stats: [
       {
@@ -232,7 +232,7 @@ export default function Home() {
                 </div>
               </div>
               <div>
-                <CrashTest compact />
+                <LiveAgents compact />
                 <p className="mt-2 text-center text-xs text-ink-faint">{t.heroCaption}</p>
               </div>
             </div>

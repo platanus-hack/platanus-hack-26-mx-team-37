@@ -88,7 +88,13 @@ const COPY = {
   },
 } as const;
 
-export function LiveAgents({ variant = 'shopping' }: { variant?: 'shopping' | 'fintual' }) {
+export function LiveAgents({
+  variant = 'shopping',
+  compact = false,
+}: {
+  variant?: 'shopping' | 'fintual';
+  compact?: boolean;
+}) {
   const { lang } = useLang();
   const t = COPY[lang];
   const url = URLS[variant];
@@ -194,7 +200,11 @@ export function LiveAgents({ variant = 'shopping' }: { variant?: 'shopping' | 'f
         </div>
 
         {/* viewport */}
-        <div ref={viewportRef} className="relative h-[300px] overflow-hidden bg-white" aria-hidden>
+        <div
+          ref={viewportRef}
+          className={`relative ${compact ? 'h-[240px]' : 'h-[300px]'} overflow-hidden bg-white`}
+          aria-hidden
+        >
           {phase === 'loading' ? (
             <div className="flex h-full items-center justify-center text-sm text-neutral-400">
               {t.loading}
