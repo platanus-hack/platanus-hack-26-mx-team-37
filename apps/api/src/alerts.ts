@@ -16,12 +16,11 @@ export interface AlertContext {
  * Human-in-the-loop notification. The approval itself happens IN-APP: a
  * `deny`/`review` raises an `incidents` row (see the store) that the dashboard
  * surfaces instantly over Supabase Realtime with Approve / Reject, and a short
- * spoken alert plays client-side (ElevenLabs). There is NO external messaging
- * API anywhere in the request path.
+ * spoken alert plays client-side (ElevenLabs).
  *
- * This is fire-and-forget and must never add latency to `/v1/evaluate`. The
- * notification channel is agnostic — email (roadmap: send via Resend), Slack,
- * etc. all plug in here without touching the decision path.
+ * On top of the in-app queue, optional heads-up channels fire here: email via
+ * Resend and WhatsApp via Kapso. Both are fire-and-forget and must NEVER add
+ * latency to `/v1/evaluate` — they're never awaited and never affect the decision.
  */
 export function notifyIncident(ctx: AlertContext): void {
   if (ctx.result.decision === 'allow') return;
@@ -49,6 +48,23 @@ export function notifyIncident(ctx: AlertContext): void {
         to: ctx.notificationEmail,
         subject: `Specter ${verb}: ${ctx.agentId}`,
         text: `${line}\n\nApprove or reject this in your Specter dashboard.`,
+      }),
+      signal: AbortSignal.timeout(4000),
+    }).catch(() => {});
+  }
+
+  // Optional WhatsApp alert via Kapso (Meta Cloud API proxy). Fire-and-forget.
+  // Note: a business-initiated message outside the 24h customer-service window
+  // needs an approved template; a plain text delivers within an open session.
+  if (env.kapso.apiKey && env.kapso.phoneNumberId && env.kapso.to) {
+    void fetch(`${env.kapso.apiUrl}/${env.kapso.phoneNumberId}/messages`, {
+      method: 'POST',
+      headers: { 'X-API-Key': env.kapso.apiKey, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: env.kapso.to,
+        type: 'text',
+        text: { body: line },
       }),
       signal: AbortSignal.timeout(4000),
     }).catch(() => {});

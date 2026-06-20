@@ -8,6 +8,12 @@ export const env = {
     apiKey: process.env.RESEND_API_KEY ?? '',
     from: process.env.RESEND_FROM ?? 'Specter <onboarding@resend.dev>',
   },
+  kapso: {
+    apiKey: process.env.KAPSO_API_KEY ?? '',
+    apiUrl: process.env.KAPSO_API_URL ?? 'https://api.kapso.ai/meta/whatsapp/v24.0',
+    phoneNumberId: process.env.KAPSO_PHONE_NUMBER_ID ?? '',
+    to: process.env.KAPSO_WHATSAPP_TO ?? '',
+  },
   nodeEnv: process.env.NODE_ENV ?? 'development',
 };
 
