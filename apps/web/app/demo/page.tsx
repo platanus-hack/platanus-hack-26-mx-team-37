@@ -24,6 +24,13 @@ const COPY = {
     proofLink: 'panel',
     proofAfter:
       ' para ver el feed en vivo, ver el ataque bloqueado e intentar editar un registro pasado — la verificación se pone roja al instante.',
+    fintualEyebrow: 'No solo compras',
+    fintualTitle: 'También protege tus inversiones.',
+    fintualSub:
+      'Un agente que gestiona tu portafolio Fintual también mueve dinero. Specter lo cubre igual: lee el portafolio real (NAV en vivo del fondo) y, si un aviso inyectado intenta cambiar tu cuenta de retiro, bloquea el retiro antes de mover un peso.',
+    fintualNotePill: 'El moat',
+    fintualNote:
+      'Mismo monto en ambos casos — lo único que cambia es de dónde vino el destino. Por eso Specter atrapa el secuestro aunque el monto esté dentro de tus límites.',
   },
   en: {
     eyebrow: 'Live demo',
@@ -44,6 +51,13 @@ const COPY = {
     proofLink: 'dashboard',
     proofAfter:
       ' to watch the live feed, see the blocked attack, and try editing a past record — the check instantly turns red.',
+    fintualEyebrow: 'Not just shopping',
+    fintualTitle: 'It protects your investments too.',
+    fintualSub:
+      "An agent that manages your Fintual portfolio also moves money. Specter covers it the same way: it reads the real portfolio (the fund's live NAV) and, if an injected notice tries to change your payout account, it blocks the withdrawal before a cent moves.",
+    fintualNotePill: 'The moat',
+    fintualNote:
+      'Same amount in both runs — the only thing that changes is where the destination came from. That is why Specter catches the hijack even when the amount is within your limits.',
   },
 } as const;
 
@@ -95,6 +109,17 @@ export default function DemoPage() {
                 {t.proofAfter}
               </p>
             </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section className="!pt-2">
+        <SectionHead eyebrow={t.fintualEyebrow} title={t.fintualTitle} sub={t.fintualSub} />
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <CrashTest variant="fintual" />
+          <div className="panel p-5">
+            <Pill tone="specter">{t.fintualNotePill}</Pill>
+            <p className="mt-3 text-sm leading-relaxed text-ink-dim">{t.fintualNote}</p>
           </div>
         </div>
       </Section>

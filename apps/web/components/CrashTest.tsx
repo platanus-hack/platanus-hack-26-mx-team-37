@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n';
-import { type DemoRun, type DemoStep, simulate } from '@/lib/specter';
+import { type DemoRun, type DemoStep, simulate, simulateFintual } from '@/lib/specter';
 import { playAlert, speak } from '@/lib/voice';
 
 type Scenario = 'legit' | 'injected';
@@ -34,6 +34,9 @@ const COPY = {
     replay: '↻ Repetir',
     narrate: '🔊 Narrar',
     footer: 'el ataque se cuela antes — en lo que el agente lee',
+    fintualLegit: 'Retiro legítimo',
+    fintualInjected: 'Retiro secuestrado',
+    footerFintual: 'el ataque viaja en el aviso que el agente leyó',
     risk: 'riesgo',
     protectionOff: 'protección APAGADA — no se tomó decisión',
     verdict: {
@@ -52,6 +55,9 @@ const COPY = {
     replay: '↻ Replay',
     narrate: '🔊 Narrate',
     footer: 'the attack sneaks in earlier — in what the agent reads',
+    fintualLegit: 'Legit withdrawal',
+    fintualInjected: 'Hijacked withdrawal',
+    footerFintual: 'the attack rides in the notice the agent read',
     risk: 'risk',
     protectionOff: 'protection OFF — no decision made',
     verdict: {
@@ -65,7 +71,13 @@ const COPY = {
 
 type Copy = (typeof COPY)[keyof typeof COPY];
 
-export function CrashTest({ compact = false }: { compact?: boolean }) {
+export function CrashTest({
+  compact = false,
+  variant = 'shopping',
+}: {
+  compact?: boolean;
+  variant?: 'shopping' | 'fintual';
+}) {
   const { lang } = useLang();
   const t = COPY[lang];
   const [protection, setProtection] = useState(true);
@@ -82,7 +94,8 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
 
   const play = useCallback(() => {
     clearTimers();
-    const r = simulate(scenario, protection, lang);
+    const sim = variant === 'fintual' ? simulateFintual : simulate;
+    const r = sim(scenario, protection, lang);
     setRun(r);
     setVisible(0);
     setRunning(true);
@@ -94,7 +107,7 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
         }, s.at + 250),
       );
     });
-  }, [scenario, protection, lang]);
+  }, [scenario, protection, lang, variant]);
 
   useEffect(() => {
     play();
@@ -118,14 +131,14 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-panel-2 px-4 py-3">
         <div className="flex items-center gap-2">
           <Toggle active={scenario === 'legit'} onClick={() => setScenario('legit')} tone="safe">
-            {t.legit}
+            {variant === 'fintual' ? t.fintualLegit : t.legit}
           </Toggle>
           <Toggle
             active={scenario === 'injected'}
             onClick={() => setScenario('injected')}
             tone="block"
           >
-            {t.injected}
+            {variant === 'fintual' ? t.fintualInjected : t.injected}
           </Toggle>
         </div>
         <div className="flex items-center gap-3">
@@ -191,7 +204,9 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
               {t.narrate}
             </button>
           </div>
-          <span className="mono text-[11px] text-ink-faint">{t.footer}</span>
+          <span className="mono text-[11px] text-ink-faint">
+            {variant === 'fintual' ? t.footerFintual : t.footer}
+          </span>
         </div>
       </div>
     </div>
