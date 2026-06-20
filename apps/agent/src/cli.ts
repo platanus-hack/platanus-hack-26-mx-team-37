@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runCheckout, type TaskOutcome } from './agent.js';
+import { runCheckout, type ShoppingTask, type TaskOutcome } from './agent.js';
 import { SCENARIOS, type ScenarioName } from './scenarios.js';
 
 // Load the repo-root .env (Node 22 native) so ANTHROPIC_API_KEY etc. are present.
@@ -15,14 +15,29 @@ interface Flags {
   scenario: ScenarioName | 'all';
   protection: boolean;
   llm: boolean;
+  /** When set, scrape this real URL with Firecrawl instead of the fixtures. */
+  url?: string;
+  merchant?: string;
+  prompt?: string;
 }
 
 function parseFlags(argv: string[]): Flags {
-  const get = (name: string) => argv.find((a) => a.startsWith(`--${name}=`))?.split('=')[1];
+  // Take everything after the first '=' so URLs with query strings survive.
+  const get = (name: string) => {
+    const arg = argv.find((a) => a.startsWith(`--${name}=`));
+    return arg ? arg.slice(name.length + 3) : undefined;
+  };
   const scenario = (get('scenario') as Flags['scenario']) ?? 'all';
   const protection = (get('protection') ?? 'on') !== 'off';
   const llm = argv.includes('--llm');
-  return { scenario, protection, llm };
+  return {
+    scenario,
+    protection,
+    llm,
+    url: get('url'),
+    merchant: get('merchant'),
+    prompt: get('prompt'),
+  };
 }
 
 function banner(title: string) {
@@ -30,13 +45,13 @@ function banner(title: string) {
   console.log(`\n┌${line}┐\n│ ${title}\n└${line}┘`);
 }
 
-async function runOne(name: ScenarioName, flags: Flags): Promise<TaskOutcome> {
+async function runTask(task: ShoppingTask, flags: Flags): Promise<TaskOutcome> {
   let outcome: TaskOutcome;
   if (flags.llm && process.env.ANTHROPIC_API_KEY) {
     const { runLlmCheckout } = await import('./llm-agent.js');
-    outcome = await runLlmCheckout(SCENARIOS[name], { protection: flags.protection });
+    outcome = await runLlmCheckout(task, { protection: flags.protection });
   } else {
-    outcome = await runCheckout(SCENARIOS[name], { protection: flags.protection });
+    outcome = await runCheckout(task, { protection: flags.protection });
   }
   for (const line of outcome.narrative) console.log(`  ${line}`);
   return outcome;
@@ -50,12 +65,28 @@ async function main() {
 
   console.log(`\n🛡️  Specter crash test — ${mode}, protection ${prot}`);
 
+  // Live mode: scrape a REAL url with Firecrawl, then route the result through
+  // Specter. The payee is tagged `ingested_content`, so a poisoned page is caught.
+  if (flags.url) {
+    const liveTask: ShoppingTask = {
+      userPrompt: flags.prompt ?? `Complete the purchase from ${flags.url}.`,
+      establishedMerchant: flags.merchant ?? new URL(flags.url).hostname,
+      productUrl: flags.url,
+      poisoned: false,
+      agentId: 'shop-agent-prod',
+    };
+    banner(`live scrape: ${flags.url}  (protection ${prot})`);
+    await runTask(liveTask, flags);
+    console.log('');
+    return;
+  }
+
   const names: ScenarioName[] = flags.scenario === 'all' ? ['legit', 'injected'] : [flags.scenario];
   const outcomes: Array<{ name: ScenarioName; outcome: TaskOutcome }> = [];
 
   for (const name of names) {
     banner(`scenario: ${name}  (protection ${prot})`);
-    const outcome = await runOne(name, flags);
+    const outcome = await runTask(SCENARIOS[name], flags);
     outcomes.push({ name, outcome });
   }
 
