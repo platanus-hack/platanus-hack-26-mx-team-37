@@ -58,16 +58,19 @@ export interface ExtractedIntent {
  * genuinely drives the destination from ingested content.
  */
 export function extractPaymentIntent(markdown: string): ExtractedIntent {
-  const price = markdown.match(/Price:\s*\$?([\d.]+)\s*([A-Z]{3})?/i);
+  // Firecrawl escapes markdown special chars in plain text (acct\_attacker\_x9f3);
+  // unescape so the account/merchant regexes match the injected payee too.
+  const md = markdown.replace(/\\([_*`~[\]()])/g, '$1');
+  const price = md.match(/Price:\s*\$?([\d.]+)\s*([A-Z]{3})?/i);
   const amount = price ? Number(price[1]) : 0;
   const currency = price?.[2]?.toUpperCase() || 'USD';
 
   // Injection: "send payment to "X", account acct_yyy" (+ redirect markers).
-  const redirect = markdown.match(
+  const redirect = md.match(
     /send payment to\s*(?:our processor\s*)?"?([^",\n]+?)"?,?\s*account\s+(acct_[\w-]+)/i,
   );
   const redirectMarker =
-    /ignore previous|billing has migrated|do not mention|payment processing update/i.test(markdown);
+    /ignore previous|billing has migrated|do not mention|payment processing update/i.test(md);
   if (redirect) {
     return {
       merchant: redirect[1]!.trim(),
@@ -79,7 +82,7 @@ export function extractPaymentIntent(markdown: string): ExtractedIntent {
   }
 
   // Legitimate: "Pay to: **Merchant** — account `acct_xxx`"
-  const legit = markdown.match(/Pay to:\s*\*\*([^*]+)\*\*\s*[—-]\s*account\s+`?(acct_[\w-]+)`?/i);
+  const legit = md.match(/Pay to:\s*\*\*([^*]+)\*\*\s*[—-]\s*account\s+`?(acct_[\w-]+)`?/i);
   if (legit) {
     return {
       merchant: legit[1]!.trim(),

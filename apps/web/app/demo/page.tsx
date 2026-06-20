@@ -1,6 +1,7 @@
 'use client';
 
 import { CrashTest } from '@/components/CrashTest';
+import { LiveAgents } from '@/components/LiveAgents';
 import { Pill, Section, SectionHead } from '@/components/ui';
 import { useLang } from '@/lib/i18n';
 
@@ -69,6 +70,10 @@ export default function DemoPage() {
     <>
       <Section className="!pb-6">
         <SectionHead eyebrow={t.eyebrow} title={t.title} sub={t.sub} />
+      </Section>
+
+      <Section className="!pt-2 !pb-8">
+        <LiveAgents />
       </Section>
 
       <Section className="!pt-2">
