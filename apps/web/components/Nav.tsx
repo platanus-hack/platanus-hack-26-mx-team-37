@@ -9,12 +9,8 @@ import { LangToggle } from './LangToggle';
 import { Logo } from './Logo';
 
 const LINKS = [
-  { href: '/product', es: 'Producto', en: 'Product' },
   { href: '/how-it-works', es: 'Cómo funciona', en: 'How it works' },
   { href: '/use-cases', es: 'Casos de uso', en: 'Use cases' },
-  { href: '/security', es: 'Seguridad', en: 'Security' },
-  { href: '/pricing', es: 'Precios', en: 'Pricing' },
-  { href: '/docs', es: 'Docs', en: 'Docs' },
   { href: '/demo', es: 'Demo en vivo', en: 'Live demo' },
 ] as const;
 
