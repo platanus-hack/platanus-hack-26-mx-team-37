@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n';
 import { ageLabel, fmt, sampleFeed, type Txn } from '@/lib/specter';
+import { speak } from '@/lib/voice';
 
 const COPY = {
   es: {
@@ -12,6 +13,7 @@ const COPY = {
     livePayments: 'pagos en vivo',
     resume: '▶ reanudar',
     pause: '⏸ pausar',
+    listen: '🔊 Resumen',
   },
   en: {
     paymentsChecked: 'Payments checked',
@@ -20,6 +22,7 @@ const COPY = {
     livePayments: 'live payments',
     resume: '▶ resume',
     pause: '⏸ pause',
+    listen: '🔊 Summary',
   },
 } as const;
 
@@ -87,6 +90,10 @@ export function Feed() {
 
   const allowed = rows.filter((r) => r.decision === 'allow').length;
   const blocked = rows.filter((r) => r.decision !== 'allow').length;
+  const summary =
+    lang === 'es'
+      ? `Specter revisó ${rows.length} pagos. Permitió ${allowed}. Bloqueó o retuvo ${blocked}.`
+      : `Specter checked ${rows.length} payments. Allowed ${allowed}. Blocked or held ${blocked}.`;
 
   return (
     <div className="space-y-4">
@@ -102,13 +109,22 @@ export function Feed() {
             <span className="h-2 w-2 animate-pulse-ring rounded-full bg-safe" />
             <span className="mono text-[11px] text-ink-dim">{t.livePayments}</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setPaused((p) => !p)}
-            className="mono text-[11px] text-ink-faint hover:text-ink"
-          >
-            {paused ? t.resume : t.pause}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => speak(summary, lang)}
+              className="mono text-[11px] text-ink-faint hover:text-ink"
+            >
+              {t.listen}
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              className="mono text-[11px] text-ink-faint hover:text-ink"
+            >
+              {paused ? t.resume : t.pause}
+            </button>
+          </div>
         </div>
         <div className="scroll-thin max-h-[520px] overflow-y-auto divide-y divide-line/60">
           {rows.map((r) => (

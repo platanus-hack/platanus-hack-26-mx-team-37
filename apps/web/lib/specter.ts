@@ -118,6 +118,8 @@ export interface DemoRun {
   signals: Record<string, string>;
   steps: DemoStep[];
   lost: number;
+  /** Spoken narration of this run, for the voice walkthrough. */
+  narration: string;
 }
 
 /**
@@ -194,6 +196,9 @@ export function simulate(
       },
       steps,
       lost: 0,
+      narration: es
+        ? 'Compra legítima. El destinatario coincide con lo que pediste y está dentro de tu política. Specter lo permitió: riesgo bajo, cero fricción.'
+        : 'Legit purchase. The payee matches what you asked for and is within policy. Specter allowed it: low risk, zero friction.',
     };
   }
 
@@ -244,6 +249,9 @@ export function simulate(
       },
       steps,
       lost: 0,
+      narration: es
+        ? 'Ataque inyectado. El agente leyó una página envenenada y, secuestrado, intentó pagar a una cuenta de atacante. Specter detectó que el destinatario vino del contenido que el agente leyó, no de ti, y bloqueó el pago antes de mover el dinero.'
+        : 'Injected attack. The agent read a poisoned page and, hijacked, tried to pay an attacker account. Specter saw the payee came from the content the agent read, not from you, and blocked the payment before any money moved.',
     };
   }
   steps.push({
@@ -262,6 +270,9 @@ export function simulate(
     signals: {},
     steps,
     lost: 79.99,
+    narration: es
+      ? 'Sin protección. El agente siguió la instrucción oculta en la página y le pagó al atacante. El dinero se fue: esto es justo lo que Specter evita.'
+      : 'No protection. The agent followed the instruction hidden on the page and paid the attacker. The money is gone: this is exactly what Specter prevents.',
   };
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n';
 
 const COPY = {
@@ -19,6 +19,15 @@ const COPY = {
     savedButton: '✓ Política guardada',
     resultingPolicy: 'política resultante',
     notificationEmailPlaceholder: 'you@company.com',
+    dictate: 'Política por voz',
+    dictateHint:
+      'Habla tu regla (ej. "bloquea pagos sobre 500 a destinos nuevos") y la transcribimos a tu política.',
+    dictateBtn: '🎙️ Dictar',
+    stop: '⏹ Detener',
+    transcribing: 'transcribiendo…',
+    heard: 'Escuché:',
+    micError: 'No se pudo acceder al micrófono.',
+    sttError: 'No se pudo transcribir. Intenta de nuevo.',
   },
   en: {
     perTxCapLabel: 'Per-transaction cap',
@@ -35,6 +44,15 @@ const COPY = {
     savedButton: '✓ Policy saved',
     resultingPolicy: 'resulting policy',
     notificationEmailPlaceholder: 'you@company.com',
+    dictate: 'Voice policy',
+    dictateHint:
+      'Speak your rule (e.g. "block payments over 500 to new destinations") and we transcribe it into your policy.',
+    dictateBtn: '🎙️ Dictate',
+    stop: '⏹ Stop',
+    transcribing: 'transcribing…',
+    heard: 'Heard:',
+    micError: 'Could not access the microphone.',
+    sttError: 'Could not transcribe. Try again.',
   },
 } as const;
 
@@ -51,6 +69,71 @@ export function PolicyWizard({ embedded = false }: { embedded?: boolean }) {
   const [approveNew, setApproveNew] = useState(true);
   const [notificationEmail, setNotificationEmail] = useState('');
   const [saved, setSaved] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+
+  // Heuristic: map a spoken rule onto the policy fields. First number → per-tx cap;
+  // keywords → require-approval-on-new-destination.
+  const applyTranscript = (text: string) => {
+    const lower = text.toLowerCase();
+    const num = lower.replace(/,/g, '').match(/(\d{2,7})/);
+    if (num) setPerTxCap(Number(num[1]));
+    if (
+      /(sin aprob|no aprob|no requ|without approv|don'?t require|do not require|allow new)/.test(
+        lower,
+      )
+    ) {
+      setApproveNew(false);
+    } else if (/(aprob|approv|nuevo|new dest|unknown|desconoc|require)/.test(lower)) {
+      setApproveNew(true);
+    }
+  };
+
+  const transcribe = async (blob: Blob) => {
+    setBusy(true);
+    setVoiceErr(null);
+    try {
+      const res = await fetch('/api/transcribe', { method: 'POST', body: blob });
+      if (!res.ok) throw new Error('stt');
+      const { text } = (await res.json()) as { text: string };
+      setTranscript(text);
+      applyTranscript(text);
+    } catch {
+      setVoiceErr(t.sttError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleRecord = async () => {
+    if (recording) {
+      recRef.current?.stop();
+      setRecording(false);
+      return;
+    }
+    setVoiceErr(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => {
+        if (e.data.size) chunksRef.current.push(e.data);
+      };
+      mr.onstop = () => {
+        for (const tr of stream.getTracks()) tr.stop();
+        void transcribe(new Blob(chunksRef.current, { type: 'audio/webm' }));
+      };
+      recRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch {
+      setVoiceErr(t.micError);
+    }
+  };
 
   const policy = {
     perTxCap,
@@ -67,6 +150,33 @@ export function PolicyWizard({ embedded = false }: { embedded?: boolean }) {
     <div className={embedded ? '' : 'mx-auto max-w-xl'}>
       <div className="panel p-6">
         <div className="space-y-5">
+          <div className="rounded-md border border-line bg-panel-2 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <span className="block text-sm font-medium text-ink">{t.dictate}</span>
+                <p className="text-xs text-ink-faint">{t.dictateHint}</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleRecord}
+                disabled={busy}
+                className={`shrink-0 rounded-md border px-3 py-2 text-xs font-medium transition disabled:opacity-50 ${
+                  recording
+                    ? 'border-block/50 bg-block/10 text-block'
+                    : 'border-line text-ink-dim hover:text-ink'
+                }`}
+              >
+                {busy ? t.transcribing : recording ? t.stop : t.dictateBtn}
+              </button>
+            </div>
+            {voiceErr && <p className="mt-2 text-xs text-block">{voiceErr}</p>}
+            {transcript && (
+              <p className="mt-2 text-xs text-ink-dim">
+                <span className="text-ink-faint">{t.heard}</span> “{transcript}”
+              </p>
+            )}
+          </div>
+
           <Field label={t.perTxCapLabel} hint={t.perTxCapHint}>
             <div className="flex items-center gap-2">
               <span className="text-ink-faint">$</span>

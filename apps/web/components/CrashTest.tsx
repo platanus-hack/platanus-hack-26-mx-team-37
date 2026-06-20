@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLang } from '@/lib/i18n';
 import { type DemoRun, type DemoStep, simulate } from '@/lib/specter';
+import { playAlert, speak } from '@/lib/voice';
 
 type Scenario = 'legit' | 'injected';
 
@@ -31,6 +32,7 @@ const COPY = {
     evaluating: 'evaluando…',
     running: 'corriendo el crash test…',
     replay: '↻ Repetir',
+    narrate: '🔊 Narrar',
     footer: 'el ataque se cuela antes — en lo que el agente lee',
     risk: 'riesgo',
     protectionOff: 'protección APAGADA — no se tomó decisión',
@@ -48,6 +50,7 @@ const COPY = {
     evaluating: 'evaluating…',
     running: 'running crash test…',
     replay: '↻ Replay',
+    narrate: '🔊 Narrate',
     footer: 'the attack sneaks in earlier — in what the agent reads',
     risk: 'risk',
     protectionOff: 'protection OFF — no decision made',
@@ -100,6 +103,14 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
   }, [play]);
 
   const finished = run && visible >= run.steps.length;
+
+  // Sound the alarm when a payment is blocked (once the run completes). Best-effort:
+  // browsers gate autoplay until the user has interacted with the page.
+  useEffect(() => {
+    if (finished && run && (run.decision === 'deny' || run.decision === 'unprotected-paid')) {
+      playAlert();
+    }
+  }, [finished, run]);
 
   return (
     <div className="panel overflow-hidden">
@@ -167,9 +178,19 @@ export function CrashTest({ compact = false }: { compact?: boolean }) {
           <div className="mono text-xs text-ink-faint">{t.running}</div>
         )}
         <div className="mt-3 flex items-center justify-between">
-          <button type="button" onClick={play} className="btn-ghost px-3 py-1.5 text-xs">
-            {t.replay}
-          </button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={play} className="btn-ghost px-3 py-1.5 text-xs">
+              {t.replay}
+            </button>
+            <button
+              type="button"
+              onClick={() => run && speak(run.narration, lang)}
+              disabled={!finished}
+              className="btn-ghost px-3 py-1.5 text-xs disabled:opacity-40"
+            >
+              {t.narrate}
+            </button>
+          </div>
           <span className="mono text-[11px] text-ink-faint">{t.footer}</span>
         </div>
       </div>
