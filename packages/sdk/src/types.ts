@@ -47,3 +47,33 @@ export interface DecisionResult {
   signals: Record<string, string>;
   signalDetail: SignalResult[];
 }
+
+/** Pointer to the tamper-evident chain row a decision was written to. */
+export interface AuditRef {
+  /** Position of this decision in the append-only chain. */
+  seq: number;
+  /** SHA-256 hash linking this record to the previous one. */
+  hash: string;
+}
+
+/** What `Guard.check` returns: the decision plus the proof row it was recorded as. */
+export interface EvaluateResult extends DecisionResult {
+  /** The tamper-evident chain row this decision was recorded as (when the API persists it). */
+  audit?: AuditRef;
+}
+
+/** A row from the append-only audit chain (`GET /v1/audit`). */
+export interface AuditRecord {
+  seq: number;
+  record: Record<string, unknown>;
+  prev_hash: string;
+  hash: string;
+}
+
+/** Result of verifying the chain (`GET /v1/audit/verify`). */
+export interface VerifyResult {
+  valid: boolean;
+  /** First index where the chain diverges, if any. */
+  brokenAt?: number;
+  reason?: string;
+}

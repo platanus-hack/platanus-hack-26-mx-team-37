@@ -99,5 +99,16 @@ res.end(JSON.stringify(body));
   riskScore: number,            // 0..1
   reason: string,
   signals: Record<string,string>,
-  signalDetail: { id, score, verdict }[] }
+  signalDetail: { id, score, verdict }[],
+  audit?: { seq: number, hash: string } }  // the tamper-evident chain row it was written to
+```
+
+## Proof (the "prove" pillar)
+
+Every decision is appended to a tamper-evident hash chain. Read it back, or
+verify it end-to-end, with the same client:
+
+```ts
+const log = await guard.audit({ limit: 10, order: 'desc' }); // newest first, each with its hash
+const { valid, brokenAt } = await guard.verify();            // false + index if any row was rewritten
 ```

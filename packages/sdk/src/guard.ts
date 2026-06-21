@@ -1,4 +1,4 @@
-import type { Action, Context, DecisionResult } from './types.js';
+import type { Action, AuditRecord, Context, EvaluateResult, VerifyResult } from './types.js';
 
 export interface GuardOptions {
   apiUrl: string;
@@ -25,7 +25,7 @@ export interface CheckInput {
 export class Guard {
   constructor(private opts: GuardOptions) {}
 
-  async check(input: CheckInput): Promise<DecisionResult> {
+  async check(input: CheckInput): Promise<EvaluateResult> {
     const body = {
       agentId: input.agentId ?? this.opts.agentId ?? 'sdk-agent',
       sessionId: input.sessionId ?? 'sdk-session',
@@ -52,7 +52,7 @@ export class Guard {
           signal: AbortSignal.timeout(this.opts.timeoutMs ?? 4000),
         });
         if (!res.ok) throw new Error(`Specter API ${res.status}: ${await res.text()}`);
-        return (await res.json()) as DecisionResult;
+        return (await res.json()) as EvaluateResult;
       } catch (err) {
         lastErr = err;
       }
@@ -65,5 +65,32 @@ export class Guard {
   /** Convenience: true only when the action is explicitly allowed. */
   async isAllowed(input: CheckInput): Promise<boolean> {
     return (await this.check(input)).decision === 'allow';
+  }
+
+  /**
+   * Read the tamper-evident decision log (the "prove" pillar). Pass
+   * `{ order: 'desc' }` for newest-first.
+   */
+  async audit(opts: { limit?: number; order?: 'asc' | 'desc' } = {}): Promise<AuditRecord[]> {
+    const q = new URLSearchParams();
+    if (opts.limit != null) q.set('limit', String(opts.limit));
+    if (opts.order) q.set('order', opts.order);
+    const qs = q.toString();
+    const data = await this.get<{ records: AuditRecord[] }>(`/v1/audit${qs ? `?${qs}` : ''}`);
+    return data.records ?? [];
+  }
+
+  /** Verify the chain is intact end-to-end (proof nothing was rewritten). */
+  async verify(): Promise<VerifyResult> {
+    return this.get<VerifyResult>('/v1/audit/verify');
+  }
+
+  private async get<T>(path: string): Promise<T> {
+    const res = await fetch(`${this.opts.apiUrl.replace(/\/$/, '')}${path}`, {
+      headers: { authorization: `Bearer ${this.opts.apiKey}` },
+      signal: AbortSignal.timeout(this.opts.timeoutMs ?? 4000),
+    });
+    if (!res.ok) throw new Error(`Specter API ${res.status}: ${await res.text()}`);
+    return (await res.json()) as T;
   }
 }
