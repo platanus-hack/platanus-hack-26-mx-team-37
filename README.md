@@ -1,6 +1,12 @@
+<div align="center">
+  <img src="project-logo.png" alt="Specter" width="200" />
+</div>
+
 # Specter
 
 **El firewall de control y observabilidad para los pagos de agentes de IA.**
+
+[🌐 Demo en vivo](https://specter-ia.vercel.app) · [📦 SDK (npm)](https://www.npmjs.com/package/specter-sdk) · [🛡️ API en vivo](https://specter-decision-api.fly.dev/health)
 
 Los agentes de IA ya mueven dinero real — y una sola entrada envenenada (una página
 que leen, el resultado de una herramienta, un correo) puede secuestrar a uno para
