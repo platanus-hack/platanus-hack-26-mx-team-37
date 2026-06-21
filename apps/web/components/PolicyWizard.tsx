@@ -192,25 +192,39 @@ export function PolicyWizard({ embedded = false }: { embedded?: boolean }) {
     } else if (/(aprob|approv|nuevo|new|desconoc|unknown|requ)/.test(lower)) {
       setApproveNew(true);
     }
-    // "agrega/añade/aprueba/permite <comercio>" → add recognized merchants to the list.
-    if (/(agreg|a[ñn]ad|aprob|aprueb|permit|approve|\badd\b|allow)/i.test(lower)) {
-      const found = KNOWN_MERCHANTS.filter(([, re]) => re.test(text)).map(([name]) => name);
-      if (found.length) {
-        setMerchants((prev) => {
-          const have = new Set(
-            prev
-              .split(',')
-              .map((s) => s.trim().toLowerCase())
-              .filter(Boolean),
-          );
-          const current = prev
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean);
-          const additions = found.filter((m) => !have.has(m.toLowerCase()));
-          return additions.length ? [...current, ...additions].join(', ') : prev;
-        });
+    // Add approved merchants by voice. Two paths:
+    //  1) any known merchant mentioned alongside an add/approve verb (canonical name);
+    //  2) a free-form name captured from "agrega <X> a los aprobados" / "add <X> to approved".
+    const titleCase = (s: string) => s.replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+    const additions: string[] = [];
+    if (/(agreg|a[ñn]ad|aprob|aprueb|\badd\b|approve)/i.test(lower)) {
+      for (const [name, re] of KNOWN_MERCHANTS) if (re.test(text)) additions.push(name);
+    }
+    const gen =
+      text.match(
+        /(?:agreg\w*|a[ñn]ad\w*|aprueb\w*|aprob\w*)\s+(.+?)\s+(?:a\s+(?:los\s+)?(?:aprobados|negocios|comercios)|a\s+la\s+lista)/i,
+      ) ||
+      text.match(
+        /(?:add|approve)\s+(.+?)\s+to\s+(?:the\s+)?(?:approved|allowlist|list|merchants?)/i,
+      );
+    if (gen?.[1]) {
+      for (const part of gen[1].split(/\s*(?:,|\sy\s|\sand\s)\s*/i)) {
+        const raw = part.replace(/["'.]/g, '').trim();
+        if (!raw || raw.length > 30) continue;
+        const known = KNOWN_MERCHANTS.find(([, re]) => re.test(raw));
+        additions.push(known ? known[0] : titleCase(raw));
       }
+    }
+    if (additions.length) {
+      setMerchants((prev) => {
+        const current = prev
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const have = new Set(current.map((s) => s.toLowerCase()));
+        const fresh = additions.filter((m) => !have.has(m.toLowerCase()));
+        return fresh.length ? [...current, ...fresh].join(', ') : prev;
+      });
     }
   };
 
