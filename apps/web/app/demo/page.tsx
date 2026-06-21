@@ -1,5 +1,6 @@
 'use client';
 
+import { AuditTrail } from '@/components/dashboard/AuditTrail';
 import { LiveAgents } from '@/components/LiveAgents';
 import { PolicyWizard } from '@/components/PolicyWizard';
 import { Pill, Section, SectionHead } from '@/components/ui';
@@ -42,6 +43,11 @@ const COPY = {
     fintualNotePill: 'El moat',
     fintualNote:
       'Mismo monto en ambos casos — lo único que cambia es de dónde vino el destino. Por eso Specter atrapa el secuestro aunque el monto esté dentro de tus límites.',
+
+    proofStepEyebrow: 'Paso 4 · La prueba',
+    proofStepTitle: 'Cada decisión deja prueba que puedes verificar',
+    proofStepSub:
+      'Cada decisión se encadena con un hash a la anterior. Edita un registro pasado —como lo haría un atacante— y la verificación se pone roja al instante en esa fila. Pruébalo aquí mismo:',
   },
   en: {
     eyebrow: 'Live demo',
@@ -79,6 +85,11 @@ const COPY = {
     fintualNotePill: 'The moat',
     fintualNote:
       'Same amount in both runs — the only thing that changes is where the destination came from. That is why Specter catches the hijack even when the amount is within your limits.',
+
+    proofStepEyebrow: 'Step 4 · The proof',
+    proofStepTitle: 'Every decision leaves proof you can verify',
+    proofStepSub:
+      'Each decision is hash-chained to the one before it. Edit a past record — like an attacker would — and the check turns red at that exact row. Try it right here:',
   },
 } as const;
 
@@ -150,6 +161,14 @@ export default function DemoPage() {
         <div className="panel mt-4 p-5">
           <Pill tone="specter">{t.fintualNotePill}</Pill>
           <p className="mt-3 text-sm leading-relaxed text-ink-dim">{t.fintualNote}</p>
+        </div>
+      </Section>
+
+      {/* Step 4 — interactive, tamper-evident proof (demo-safe: never mutates the real chain) */}
+      <Section className="!pt-2 !pb-12">
+        <SectionHead eyebrow={t.proofStepEyebrow} title={t.proofStepTitle} sub={t.proofStepSub} />
+        <div className="mt-6">
+          <AuditTrail forceDemo />
         </div>
       </Section>
     </>

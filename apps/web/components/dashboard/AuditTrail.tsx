@@ -55,9 +55,12 @@ const COPY = {
   },
 } as const;
 
-export function AuditTrail() {
+export function AuditTrail({ forceDemo = false }: { forceDemo?: boolean } = {}) {
   const { lang } = useLang();
   const t = COPY[lang];
+  // The public /demo embeds this in demo mode: same crypto + "turns red", but the
+  // tamper is client-side only — it never mutates the real append-only chain.
+  const live = LIVE_BACKEND && !forceDemo;
   const [chain, setChain] = useState<ChainRecord[]>([]);
   const [status, setStatus] = useState<{ valid: boolean; brokenAt?: number } | null>(null);
   const [tampered, setTampered] = useState<number | null>(null);
@@ -100,7 +103,7 @@ export function AuditTrail() {
 
   useEffect(() => {
     (async () => {
-      if (LIVE_BACKEND) {
+      if (live) {
         try {
           await loadLiveChain();
           await verifyLive();
@@ -124,10 +127,10 @@ export function AuditTrail() {
       setChain(c);
       setStatus(await verifyChain(c));
     })();
-  }, []);
+  }, [live]);
 
   async function reverify(next = chain) {
-    if (LIVE_BACKEND) {
+    if (live) {
       await verifyLive();
       return;
     }
@@ -137,7 +140,7 @@ export function AuditTrail() {
   }
 
   async function tamper(i: number) {
-    if (LIVE_BACKEND) {
+    if (live) {
       // Ask the backend to mutate a stored record in place (no hash recompute),
       // then re-read the real chain and re-verify — it will turn red.
       try {
@@ -165,7 +168,7 @@ export function AuditTrail() {
   }
 
   async function restore() {
-    if (LIVE_BACKEND) {
+    if (live) {
       // NOTE: the DB chain is append-only, so a real tamper is permanent by
       // design — there is nothing to "undo". Restore simply re-reads the chain
       // and re-verifies (it will still report the tamper).
@@ -220,7 +223,7 @@ export function AuditTrail() {
                   ? t.verified
                   : `${t.tamperPrefix} ${status.brokenAt}`}
               <span className="mono text-[10px] uppercase tracking-wider text-ink-faint">
-                {LIVE_BACKEND ? t.liveTag : t.demoTag}
+                {live ? t.liveTag : t.demoTag}
               </span>
             </div>
             <div className="mono text-[11px] text-ink-faint">
