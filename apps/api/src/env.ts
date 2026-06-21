@@ -13,6 +13,8 @@ export const env = {
     apiUrl: process.env.KAPSO_API_URL ?? 'https://api.kapso.ai/meta/whatsapp/v24.0',
     phoneNumberId: process.env.KAPSO_PHONE_NUMBER_ID ?? '',
     to: process.env.KAPSO_WHATSAPP_TO ?? '',
+    // Optional shared secret for the inbound webhook (?token=...); empty = accept.
+    webhookSecret: process.env.KAPSO_WEBHOOK_SECRET ?? '',
   },
   nodeEnv: process.env.NODE_ENV ?? 'development',
 };

@@ -171,7 +171,7 @@ export default function Docs() {
 
       <Section className="!pt-2 space-y-8">
         <div>
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <Pill tone="specter">{t.hookPill}</Pill>
             <span className="text-sm text-ink-dim">{t.hookDesc}</span>
           </div>
@@ -187,7 +187,7 @@ export default function Docs() {
         </div>
 
         <div>
-          <div className="mb-3 flex items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <Pill tone="specter">{t.sdkPill}</Pill>
             <span className="text-sm text-ink-dim">{t.sdkDesc}</span>
           </div>

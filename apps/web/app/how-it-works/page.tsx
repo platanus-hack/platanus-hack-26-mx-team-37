@@ -108,7 +108,7 @@ export default function HowItWorks() {
             </li>
           ))}
         </ol>
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex flex-wrap gap-3">
           <Link href="/demo" className="btn-primary">
             {t.ctaPrimary}
           </Link>

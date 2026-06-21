@@ -132,7 +132,7 @@ export default function Pricing() {
         <SectionHead eyebrow={t.eyebrow} title={t.title} sub={t.sub} center />
       </Section>
       <Section className="!pt-2">
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {t.tiers.map((tier) => (
             <div
               key={tier.name}

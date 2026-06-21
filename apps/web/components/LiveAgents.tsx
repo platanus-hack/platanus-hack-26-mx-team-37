@@ -397,7 +397,7 @@ function PageContent({ t, revealed }: { t: (typeof COPY)[keyof typeof COPY]; rev
         <div className="text-[12px] text-[#565959]">
           Envío <strong>GRATIS</strong> con Prime · llega mañana
         </div>
-        <div className="flex gap-2 pt-1">
+        <div className="flex flex-wrap gap-2 pt-1">
           <span className="rounded-full bg-[#ffd814] px-3 py-1 text-[11px] font-medium text-[#0f1111]">
             Agregar al carrito
           </span>
@@ -579,9 +579,11 @@ function Verdict({
             {result.riskScore.toFixed(2)}
             {result.ms != null ? ` · ⚡ ${result.ms} ms` : ''}
           </div>
-          <div className="mono text-[10px] text-ink-faint">🌐 {result.scraped.sourceRef}</div>
+          <div className="mono text-[10px] text-ink-faint break-all">
+            🌐 {result.scraped.sourceRef}
+          </div>
           {result.audit && (
-            <div className="mono text-[10px] text-ink-faint">
+            <div className="mono text-[10px] text-ink-faint break-all">
               📜 {t.proofLabel} #{result.audit.seq} · {result.audit.hash.slice(0, 18)}…{' '}
               <Link
                 href="/dashboard"

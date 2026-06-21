@@ -286,7 +286,7 @@ export function PolicyWizard({ embedded = false }: { embedded?: boolean }) {
       <div className="panel p-6">
         <div className="space-y-5">
           <div className="rounded-md border border-line bg-panel-2 p-3">
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="block text-sm font-medium text-ink">{t.dictate}</span>
                 <p className="text-xs text-ink-faint">{t.dictateHint}</p>
@@ -313,7 +313,7 @@ export function PolicyWizard({ embedded = false }: { embedded?: boolean }) {
           </div>
 
           <Field label={t.perTxCapLabel} hint={t.perTxCapHint}>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-ink-faint">$</span>
               <input
                 type="number"

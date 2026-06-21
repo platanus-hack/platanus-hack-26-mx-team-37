@@ -68,14 +68,14 @@ export default function GetStarted() {
       <Section className="!pt-2">
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <Pill tone="specter">{t.step1}</Pill>
               <span className="text-sm text-ink-dim">{t.step1Desc}</span>
             </div>
             <PolicyWizard embedded />
           </div>
           <div>
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <Pill tone="specter">{t.step2}</Pill>
               <span className="text-sm text-ink-dim">{t.step2Desc}</span>
             </div>

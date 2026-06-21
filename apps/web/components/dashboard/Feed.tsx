@@ -165,7 +165,7 @@ export function Feed() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Kpi label={t.paymentsChecked} value={String(rows.length)} />
         <Kpi label={t.allowed} value={String(allowed)} tone="text-safe" />
         <Kpi label={t.blockedHeld} value={String(blocked)} tone="text-block" />
@@ -199,38 +199,42 @@ export function Feed() {
             </button>
           </div>
         </div>
-        <div className="scroll-thin max-h-[520px] overflow-y-auto divide-y divide-line/60">
-          {rows.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-ink-dim">{t.empty}</div>
-          ) : (
-            rows.map((r) => (
-              <div
-                key={r.id}
-                className="flex items-center gap-3 px-4 py-2.5 animate-flow-down hover:bg-panel-2/50"
-              >
-                <span className={`dot ${dotClass(r.decision)}`} />
-                <span className="mono w-[120px] shrink-0 truncate text-[11px] text-ink-dim">
-                  {r.agent}
-                </span>
-                <span className="mono w-[64px] shrink-0 text-[11px] text-ink-faint">{r.type}</span>
-                <span className="mono w-[88px] shrink-0 text-right text-[12px] text-ink">
-                  {r.amount != null ? `$${fmt(r.amount)}` : '—'}
-                </span>
-                <span className="mono flex-1 truncate text-[11px] text-ink-dim">
-                  → {r.destination}
-                  {r.merchantClaimed ? `  (${r.merchantClaimed})` : ''}
-                </span>
-                <span
-                  className={`mono w-[58px] shrink-0 text-right text-[11px] font-semibold uppercase ${decisionText(r.decision)}`}
+        <div className="overflow-x-auto scroll-thin">
+          <div className="min-w-[620px] divide-y divide-line/60">
+            {rows.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-ink-dim">{t.empty}</div>
+            ) : (
+              rows.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-center gap-3 px-4 py-2.5 animate-flow-down hover:bg-panel-2/50"
                 >
-                  {r.decision}
-                </span>
-                <span className="mono w-[58px] shrink-0 text-right text-[10px] text-ink-faint">
-                  {ageLabel(r.ageSec)}
-                </span>
-              </div>
-            ))
-          )}
+                  <span className={`dot ${dotClass(r.decision)}`} />
+                  <span className="mono w-[120px] shrink-0 truncate text-[11px] text-ink-dim">
+                    {r.agent}
+                  </span>
+                  <span className="mono w-[64px] shrink-0 text-[11px] text-ink-faint">
+                    {r.type}
+                  </span>
+                  <span className="mono w-[88px] shrink-0 text-right text-[12px] text-ink">
+                    {r.amount != null ? `$${fmt(r.amount)}` : '—'}
+                  </span>
+                  <span className="mono flex-1 truncate text-[11px] text-ink-dim">
+                    → {r.destination}
+                    {r.merchantClaimed ? `  (${r.merchantClaimed})` : ''}
+                  </span>
+                  <span
+                    className={`mono w-[58px] shrink-0 text-right text-[11px] font-semibold uppercase ${decisionText(r.decision)}`}
+                  >
+                    {r.decision}
+                  </span>
+                  <span className="mono w-[58px] shrink-0 text-right text-[10px] text-ink-faint">
+                    {ageLabel(r.ageSec)}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

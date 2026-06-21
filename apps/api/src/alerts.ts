@@ -10,21 +10,44 @@ export interface AlertContext {
   merchantClaimed?: string;
   result: DecisionResult;
   notificationEmail?: string;
+  /** When present, WhatsApp sends tappable Approve/Reject buttons for this incident. */
+  tenantId?: string;
+  incidentId?: string;
 }
 
 // Rate-limit WhatsApp so bursts (rapid demo clicks) never spam the number.
 const WHATSAPP_MIN_GAP_MS = 60_000;
 let lastWhatsAppAt = 0;
 
+function kapsoConfigured(): boolean {
+  return Boolean(env.kapso.apiKey && env.kapso.phoneNumberId && env.kapso.to);
+}
+
+/** Low-level Kapso send (Meta Cloud API proxy). Fire-and-forget; never awaited. */
+function kapsoSend(body: Record<string, unknown>): void {
+  if (!kapsoConfigured()) return;
+  void fetch(`${env.kapso.apiUrl}/${env.kapso.phoneNumberId}/messages`, {
+    method: 'POST',
+    headers: { 'X-API-Key': env.kapso.apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({ messaging_product: 'whatsapp', to: env.kapso.to, ...body }),
+    signal: AbortSignal.timeout(4000),
+  }).catch(() => {});
+}
+
+/** Plain WhatsApp text — used for resolution confirmations from the webhook. */
+export function sendWhatsAppText(text: string): void {
+  kapsoSend({ type: 'text', text: { body: text } });
+}
+
 /**
- * Human-in-the-loop notification. The approval itself happens IN-APP: a
- * `deny`/`review` raises an `incidents` row (see the store) that the dashboard
- * surfaces instantly over Supabase Realtime with Approve / Reject, and a short
- * spoken alert plays client-side (ElevenLabs).
+ * Human-in-the-loop notification. The approval also happens IN-APP (a
+ * `deny`/`review` raises an `incidents` row the dashboard surfaces over Supabase
+ * Realtime with Approve / Reject, plus a spoken alert client-side).
  *
- * On top of the in-app queue, optional heads-up channels fire here: email via
- * Resend and WhatsApp via Kapso. Both are fire-and-forget and must NEVER add
- * latency to `/v1/evaluate` — they're never awaited and never affect the decision.
+ * On top of that, optional heads-up channels fire here: email (Resend) and
+ * WhatsApp (Kapso). When we can map the reply back to an incident, WhatsApp sends
+ * tappable Approve/Reject buttons; the /hooks/whatsapp webhook resolves the
+ * incident on tap. Both channels are fire-and-forget and never add latency.
  */
 export function notifyIncident(ctx: AlertContext): void {
   if (ctx.result.decision === 'allow') return;
@@ -36,13 +59,11 @@ export function notifyIncident(ctx: AlertContext): void {
   const line =
     `🛡️ Specter ${verb}: ${ctx.agentId} attempted ${amount}${dest}` +
     (ctx.merchantClaimed ? ` (claims "${ctx.merchantClaimed}")` : '') +
-    ` — incident raised for in-app approval. Reason: ${ctx.result.reason}`;
+    ` — Reason: ${ctx.result.reason}`;
   // eslint-disable-next-line no-console
   console.warn(line);
 
-  // Optional email notification via Resend. Fire-and-forget — never awaited, so it
-  // cannot add latency to /v1/evaluate. No key or recipient ⇒ the in-app approval
-  // queue + voice alert remain the human-in-the-loop (this is purely a heads-up).
+  // Optional email notification via Resend. Fire-and-forget.
   if (env.resend.apiKey && ctx.notificationEmail) {
     void fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -57,27 +78,60 @@ export function notifyIncident(ctx: AlertContext): void {
     }).catch(() => {});
   }
 
-  // Optional WhatsApp alert via Kapso (Meta Cloud API proxy). Fire-and-forget.
-  // Note: a business-initiated message outside the 24h customer-service window
-  // needs an approved template; a plain text delivers within an open session.
+  // WhatsApp — rate-limited. Interactive Approve/Reject buttons when the reply can
+  // be mapped to an incident; otherwise a plain heads-up text.
   const now = Date.now();
-  if (
-    env.kapso.apiKey &&
-    env.kapso.phoneNumberId &&
-    env.kapso.to &&
-    now - lastWhatsAppAt >= WHATSAPP_MIN_GAP_MS
-  ) {
+  if (kapsoConfigured() && now - lastWhatsAppAt >= WHATSAPP_MIN_GAP_MS) {
     lastWhatsAppAt = now;
-    void fetch(`${env.kapso.apiUrl}/${env.kapso.phoneNumberId}/messages`, {
-      method: 'POST',
-      headers: { 'X-API-Key': env.kapso.apiKey, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        messaging_product: 'whatsapp',
-        to: env.kapso.to,
-        type: 'text',
-        text: { body: line },
-      }),
-      signal: AbortSignal.timeout(4000),
-    }).catch(() => {});
+    if (ctx.tenantId && ctx.incidentId) {
+      kapsoSend({
+        type: 'interactive',
+        interactive: {
+          type: 'button',
+          body: { text: line.slice(0, 1024) },
+          action: {
+            buttons: [
+              {
+                type: 'reply',
+                reply: { id: `apv:${ctx.tenantId}:${ctx.incidentId}`, title: '✅ Aprobar' },
+              },
+              {
+                type: 'reply',
+                reply: { id: `rej:${ctx.tenantId}:${ctx.incidentId}`, title: '🚫 Rechazar' },
+              },
+            ],
+          },
+        },
+      });
+    } else {
+      kapsoSend({ type: 'text', text: { body: line } });
+    }
   }
+}
+
+/** Parse an inbound Kapso/Meta webhook payload for an Approve/Reject button tap. */
+export function parseWhatsAppAction(
+  payload: unknown,
+): { action: 'approved' | 'rejected'; tenantId: string; incidentId: string } | null {
+  const re = /^(apv|rej):([0-9a-fA-F-]{8,}):([0-9a-fA-F-]{8,})$/;
+  const seen = new Set<unknown>();
+  const stack: unknown[] = [payload];
+  while (stack.length) {
+    const cur = stack.pop();
+    if (typeof cur === 'string') {
+      const m = cur.match(re);
+      if (m) {
+        return {
+          action: m[1] === 'apv' ? 'approved' : 'rejected',
+          tenantId: m[2] as string,
+          incidentId: m[3] as string,
+        };
+      }
+    } else if (cur && typeof cur === 'object') {
+      if (seen.has(cur)) continue;
+      seen.add(cur);
+      for (const v of Object.values(cur as Record<string, unknown>)) stack.push(v);
+    }
+  }
+  return null;
 }

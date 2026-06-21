@@ -108,7 +108,11 @@ export function Nav() {
                 {l[lang]}
               </Link>
             ))}
-            {user ? <div className="mt-1 px-2 text-xs text-ink-faint">{user.email}</div> : null}
+            {user ? (
+              <div className="mt-1 px-2 text-xs text-ink-faint truncate" title={user.email ?? ''}>
+                {user.email}
+              </div>
+            ) : null}
             <div className="mt-2 flex gap-2">
               <Link href="/dashboard" className="btn-ghost flex-1" onClick={() => setOpen(false)}>
                 {t.dashboard}

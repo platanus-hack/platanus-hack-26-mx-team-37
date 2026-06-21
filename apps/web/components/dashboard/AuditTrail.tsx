@@ -207,7 +207,7 @@ export function AuditTrail({ forceDemo = false }: { forceDemo?: boolean } = {}) 
   return (
     <div className="space-y-4">
       <div
-        className={`panel flex items-center justify-between px-4 py-3 ${
+        className={`panel flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-4 py-3 ${
           status?.valid ? 'border-safe/40' : 'border-block/50'
         }`}
       >
@@ -249,55 +249,59 @@ export function AuditTrail({ forceDemo = false }: { forceDemo?: boolean } = {}) 
       </div>
 
       <div className="panel overflow-hidden">
-        <div className="grid grid-cols-[40px_1fr_70px_70px_90px] gap-2 border-b border-line bg-panel-2 px-4 py-2 mono text-[10px] uppercase tracking-wider text-ink-faint">
-          <span>{t.colSeq}</span>
-          <span>{t.colFingerprint}</span>
-          <span>{t.colDecision}</span>
-          <span className="text-right">{t.colAmount}</span>
-          <span className="text-right">{t.colAction}</span>
-        </div>
-        <div className="scroll-thin max-h-[440px] overflow-y-auto divide-y divide-line/60">
-          {chain.map((r, i) => {
-            const broken = !status?.valid && status?.brokenAt != null && i >= status.brokenAt;
-            return (
-              <div
-                key={r.seq}
-                className={`grid grid-cols-[40px_1fr_70px_70px_90px] items-center gap-2 px-4 py-2 ${
-                  broken ? 'bg-block/5' : ''
-                }`}
-              >
-                <span className="mono text-[11px] text-ink-faint">{r.seq}</span>
-                <span
-                  className={`mono truncate text-[11px] ${broken ? 'text-block' : 'text-ink-dim'}`}
-                >
-                  {r.hash.slice(0, 28)}…
-                </span>
-                <span
-                  className={`mono text-[11px] font-semibold uppercase ${
-                    (r.record.decision as string) === 'allow'
-                      ? 'text-safe'
-                      : (r.record.decision as string) === 'deny'
-                        ? 'text-block'
-                        : 'text-review'
-                  }`}
-                >
-                  {String(r.record.decision)}
-                </span>
-                <span className="mono text-right text-[11px] text-ink">
-                  {r.record.amount == null ? '—' : `$${r.record.amount}`}
-                </span>
-                <span className="text-right">
-                  <button
-                    type="button"
-                    onClick={() => tamper(i)}
-                    className="mono text-[10px] text-ink-faint underline-offset-2 hover:text-block hover:underline"
+        <div className="overflow-x-auto scroll-thin">
+          <div className="min-w-[560px]">
+            <div className="grid grid-cols-[45px_1fr_75px_75px_100px] gap-2 border-b border-line bg-panel-2 px-4 py-2.5 mono text-[10px] uppercase tracking-wider text-ink-faint">
+              <span>{t.colSeq}</span>
+              <span>{t.colFingerprint}</span>
+              <span>{t.colDecision}</span>
+              <span className="text-right">{t.colAmount}</span>
+              <span className="text-right">{t.colAction}</span>
+            </div>
+            <div className="scroll-thin max-h-[440px] overflow-y-auto divide-y divide-line/60">
+              {chain.map((r, i) => {
+                const broken = !status?.valid && status?.brokenAt != null && i >= status.brokenAt;
+                return (
+                  <div
+                    key={r.seq}
+                    className={`grid grid-cols-[45px_1fr_75px_75px_100px] items-center gap-2 px-4 py-2.5 ${
+                      broken ? 'bg-block/5' : ''
+                    }`}
                   >
-                    {t.editRecord}
-                  </button>
-                </span>
-              </div>
-            );
-          })}
+                    <span className="mono text-[11px] text-ink-faint">{r.seq}</span>
+                    <span
+                      className={`mono truncate text-[11px] ${broken ? 'text-block' : 'text-ink-dim'}`}
+                    >
+                      {r.hash.slice(0, 28)}…
+                    </span>
+                    <span
+                      className={`mono text-[11px] font-semibold uppercase ${
+                        (r.record.decision as string) === 'allow'
+                          ? 'text-safe'
+                          : (r.record.decision as string) === 'deny'
+                            ? 'text-block'
+                            : 'text-review'
+                      }`}
+                    >
+                      {String(r.record.decision)}
+                    </span>
+                    <span className="mono text-right text-[11px] text-ink">
+                      {r.record.amount == null ? '—' : `$${r.record.amount}`}
+                    </span>
+                    <span className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => tamper(i)}
+                        className="mono text-[10px] text-ink-faint underline-offset-2 hover:text-block hover:underline"
+                      >
+                        {t.editRecord}
+                      </button>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
       <p className="text-xs text-ink-faint">

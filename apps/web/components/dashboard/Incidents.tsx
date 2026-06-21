@@ -214,7 +214,7 @@ export function Incidents() {
                 </div>
                 <div className="mt-1.5 text-sm text-ink">
                   {i.amount != null ? `$${fmt(i.amount)} → ` : ''}
-                  <span className="mono text-ink-dim">{i.destination}</span>
+                  <span className="mono text-ink-dim break-all">{i.destination}</span>
                   {i.merchant ? (
                     <span className="text-ink-faint">
                       {' '}

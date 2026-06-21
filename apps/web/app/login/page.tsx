@@ -115,7 +115,9 @@ export default function LoginPage() {
 
         {user ? (
           <div className="mt-6 space-y-4">
-            <p className="text-center text-sm text-ink-dim">{t.signedInAs(user.email ?? '')}</p>
+            <p className="text-center text-sm text-ink-dim break-all">
+              {t.signedInAs(user.email ?? '')}
+            </p>
             <button
               type="button"
               onClick={() => router.push('/dashboard')}

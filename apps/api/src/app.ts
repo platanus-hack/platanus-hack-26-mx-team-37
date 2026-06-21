@@ -4,7 +4,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { ZodError } from 'zod';
-import { notifyIncident } from './alerts.js';
+import { notifyIncident, parseWhatsAppAction, sendWhatsAppText } from './alerts.js';
+import { env } from './env.js';
 import { classifyWithLlm } from './detector.js';
 import {
   type ClaudeCodeHookPayload,
@@ -74,6 +75,8 @@ export async function evaluateAndRecord(
       merchantClaimed: base.action.merchantClaimed,
       result,
       notificationEmail: policy.notificationEmail,
+      tenantId: tenant.tenantId,
+      incidentId: recorded.incident?.id,
     });
   }
   return { result, audit: { seq: recorded.audit.seq, hash: recorded.audit.hash }, coreMs };
@@ -201,6 +204,35 @@ export function createApp() {
         200,
       );
     }
+  });
+
+  // ── WhatsApp inbound (Kapso) — Approve/Reject button taps resolve incidents ──
+  // GET: Meta-style verification handshake (echo hub.challenge). POST: a button
+  // reply carries `apv|rej:<tenantId>:<incidentId>`, which resolves the incident
+  // (so a tap in WhatsApp reflects in the dashboard via Realtime).
+  app.get('/hooks/whatsapp', (c) => {
+    const challenge = c.req.query('hub.challenge');
+    return challenge ? c.text(challenge) : c.json({ ok: true });
+  });
+  app.post('/hooks/whatsapp', async (c) => {
+    if (env.kapso.webhookSecret && c.req.query('token') !== env.kapso.webhookSecret) {
+      return c.json({ error: 'unauthorized' }, 401);
+    }
+    const payload = await c.req.json().catch(() => ({}));
+    const action = parseWhatsAppAction(payload);
+    if (action) {
+      try {
+        await getStore().resolveIncident(action.tenantId, action.incidentId, action.action);
+        sendWhatsAppText(
+          action.action === 'approved'
+            ? '✅ Aprobado — el pago se libera (solo esa acción).'
+            : '🚫 Rechazado — el pago queda bloqueado.',
+        );
+      } catch {
+        // unknown incident / transient — ack anyway so the provider doesn't retry forever
+      }
+    }
+    return c.json({ ok: true });
   });
 
   return app;

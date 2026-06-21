@@ -104,28 +104,33 @@ export function LiveLedger() {
         </span>
       </div>
 
-      <div className="divide-y divide-line/60">
-        {data.records.map((r) => {
-          const tone = decisionTone[r.decision] ?? 'ink-faint';
-          return (
-            <div
-              key={r.seq}
-              className="grid grid-cols-[34px_88px_1fr_auto] items-center gap-2 px-4 py-2"
-            >
-              <span className="mono text-[11px] text-ink-faint">{r.seq}</span>
-              <span
-                className={`mono text-[11px] font-bold uppercase text-${tone}`}
-                title={r.merchant ?? r.destination ?? ''}
+      <div className="overflow-x-auto scroll-thin">
+        <div className="min-w-[400px] divide-y divide-line/60">
+          {data.records.map((r) => {
+            const tone = decisionTone[r.decision] ?? 'ink-faint';
+            return (
+              <div
+                key={r.seq}
+                className="grid grid-cols-[34px_88px_1fr_auto] items-center gap-2 px-4 py-2"
               >
-                {verbFor(r.decision)}
-              </span>
-              <span className="mono truncate text-[11px] text-ink-dim">{r.hash.slice(0, 22)}…</span>
-              <span className="mono text-right text-[11px] text-ink">
-                {r.amount == null ? '—' : `${r.currency ?? '$'} ${r.amount}`}
-              </span>
-            </div>
-          );
-        })}
+                <span className="mono text-[11px] text-ink-faint">{r.seq}</span>
+                <span
+                  className={`mono text-[11px] font-bold uppercase text-${tone}`}
+                  title={r.merchant ?? r.destination ?? ''}
+                >
+                  {verbFor(r.decision)}
+                </span>
+                <span className="mono min-w-0 truncate text-[11px] text-ink-dim">
+                  {r.merchant ?? r.destination ?? '—'}
+                  <span className="ml-1.5 text-[10px] text-ink-faint">{r.hash.slice(0, 10)}…</span>
+                </span>
+                <span className="mono text-right text-[11px] text-ink">
+                  {r.amount == null ? '—' : `${r.currency ?? '$'} ${r.amount}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="border-t border-line bg-panel-2 px-4 py-2.5 text-right">

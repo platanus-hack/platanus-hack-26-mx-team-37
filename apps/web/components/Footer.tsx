@@ -82,7 +82,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-line">
-        <div className="container-x flex flex-col items-start justify-between gap-2 py-5 text-xs text-ink-faint sm:flex-row sm:items-center">
+        <div className="container-x flex flex-col items-start justify-between gap-3 py-5 text-xs text-ink-faint lg:flex-row lg:items-center">
           <span>
             © {new Date().getFullYear()} Specter Security, Inc. · {t.rights}
           </span>

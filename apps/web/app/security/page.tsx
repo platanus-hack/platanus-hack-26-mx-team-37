@@ -162,7 +162,7 @@ export default function SecurityPage() {
           <Pill tone="safe">{t.proofPill}</Pill>
           <p className="mt-3 text-sm leading-relaxed text-ink-dim">
             {t.proofBody1}
-            <span className="mono text-specter-soft">
+            <span className="mono text-specter-soft break-all">
               {' '}
               hash_n = sha256(prev_hash + canonicalJSON(record))
             </span>

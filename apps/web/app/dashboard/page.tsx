@@ -77,7 +77,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="mt-6 flex gap-1 border-b border-line">
+      <div className="mt-6 flex flex-wrap gap-1 border-b border-line">
         {TABS.map((t) => (
           <button
             key={t.id}
