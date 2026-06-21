@@ -2,7 +2,7 @@
 
 The thin "plug" that connects an agent's actions to the
 [Specter](https://specter-ia.vercel.app) decision API — *detect → block → prove*
-for AI-agent payments. The API is the product; this is ~150 lines of glue.
+for AI-agent payments. The API is the product; this is ~200 lines of glue.
 **Zero dependencies.**
 
 ```bash
@@ -40,6 +40,10 @@ const decision = await guard.check({
 if (decision.decision !== 'allow') throw new Error(decision.reason);
 // ...only now move money.
 ```
+
+`guard.isAllowed(input)` is a convenience that returns `true` only when the
+decision is `allow`. The `Guard` constructor also takes optional `timeoutMs`
+(default `4000`), `retries` (default `1`) and a default `agentId`.
 
 ## Claude Code hook (drop-in)
 

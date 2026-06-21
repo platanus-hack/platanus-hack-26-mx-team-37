@@ -12,7 +12,7 @@ const manifest = {
   name: 'specter-sdk',
   version,
   description:
-    'Thin client for Specter — the detect → block → prove firewall / decision API for AI-agent payments. Guard.check() + a drop-in Claude Code hook. Zero dependencies.',
+    'Thin, zero-dependency client for Specter — the detect → block → prove firewall / decision API for AI-agent payments. Guard.check() returns the decision plus tamper-evident proof; audit()/verify() read and check the chain; ships a drop-in Claude Code hook.',
   type: 'module',
   main: './index.cjs',
   module: './index.js',
