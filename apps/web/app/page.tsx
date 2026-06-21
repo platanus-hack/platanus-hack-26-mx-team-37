@@ -28,22 +28,24 @@ const COPY = {
 
     stats: [
       {
-        value: '$billones',
-        label: 'en pagos que se proyecta manejarán los agentes de IA para 2030',
+        value: '$15 billones',
+        label: 'en compras que los agentes de IA intermediarán para 2028 — Gartner',
         accent: 'text-specter-soft',
       },
       {
-        value: '+340%',
-        label: 'más ataques de secuestro de agentes año tras año',
+        value: 'Riesgo #1',
+        label: 'de OWASP en apps con LLM (2025): la inyección de prompts que secuestra al agente',
         accent: 'text-block',
       },
       {
-        value: '~50%',
+        value: '55%',
         label:
-          'de la gente todavía no deja que la IA gaste sin un humano mirando — esa es la confianza que construimos',
+          'de la gente aún no deja que un agente compre sin supervisión (Riskified, 2026) — esa confianza es la que construimos',
         accent: 'text-review',
       },
     ],
+
+    statsLead: 'Los agentes ya gastan. La pregunta es quién los vigila.',
 
     ladderEyebrow: 'Atrápalo · Frénalo · Pruébalo',
     ladderTitle: 'Tres tareas, en orden.',
@@ -110,22 +112,24 @@ const COPY = {
 
     stats: [
       {
-        value: '$trillions',
-        label: 'in payments AI agents are projected to handle by 2030',
+        value: '$15T',
+        label: 'in purchases AI agents will intermediate by 2028 — Gartner',
         accent: 'text-specter-soft',
       },
       {
-        value: '+340%',
-        label: 'more agent-hijacking attacks year over year',
+        value: 'Risk #1',
+        label: "OWASP's top LLM-app risk (2025): the prompt injection that hijacks the agent",
         accent: 'text-block',
       },
       {
-        value: '~50%',
+        value: '55%',
         label:
-          "of people still won't let AI spend without a human watching — that's the trust we build",
+          "still won't let an agent buy without oversight (Riskified, 2026) — that's the trust we build",
         accent: 'text-review',
       },
     ],
+
+    statsLead: 'Agents already spend. The question is who is watching.',
 
     ladderEyebrow: 'Catch it · Stop it · Prove it',
     ladderTitle: 'Three jobs, in order.',
@@ -223,6 +227,7 @@ export default function Home() {
 
       {/* IMPACT STATS */}
       <Section className="!pt-6">
+        <p className="mb-5 text-center text-lg font-medium text-ink sm:text-xl">{t.statsLead}</p>
         <div className="grid gap-4 sm:grid-cols-3">
           {t.stats.map((s) => (
             <Stat key={s.value} value={s.value} label={s.label} accent={s.accent} />
