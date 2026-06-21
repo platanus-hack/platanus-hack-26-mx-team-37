@@ -32,6 +32,7 @@ export interface EvaluateAndRecordResult {
 export async function evaluateAndRecord(
   tenant: { tenantId: string; tenantName: string },
   base: Omit<EvaluateInput, 'policy' | 'state'>,
+  opts: { notify?: boolean } = {},
 ): Promise<EvaluateAndRecordResult> {
   const store = getStore();
   const policy = await store.getPolicy(tenant.tenantId);
@@ -60,9 +61,10 @@ export async function evaluateAndRecord(
     raw: base.action.rawInput,
   });
 
-  if (result.decision !== 'allow') {
+  if (result.decision !== 'allow' && opts.notify !== false) {
     // Fire-and-forget; the in-app incidents queue (Supabase Realtime) + client-side
     // voice alert is the human-in-the-loop. Never blocks the decision path.
+    // (The 24/7 scheduler passes notify:false so background rounds don't ping WhatsApp.)
     notifyIncident({
       tenantName: tenant.tenantName,
       agentId: base.agentId,

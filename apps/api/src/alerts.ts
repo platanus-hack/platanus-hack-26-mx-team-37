@@ -12,6 +12,10 @@ export interface AlertContext {
   notificationEmail?: string;
 }
 
+// Rate-limit WhatsApp so bursts (rapid demo clicks) never spam the number.
+const WHATSAPP_MIN_GAP_MS = 60_000;
+let lastWhatsAppAt = 0;
+
 /**
  * Human-in-the-loop notification. The approval itself happens IN-APP: a
  * `deny`/`review` raises an `incidents` row (see the store) that the dashboard
@@ -56,7 +60,14 @@ export function notifyIncident(ctx: AlertContext): void {
   // Optional WhatsApp alert via Kapso (Meta Cloud API proxy). Fire-and-forget.
   // Note: a business-initiated message outside the 24h customer-service window
   // needs an approved template; a plain text delivers within an open session.
-  if (env.kapso.apiKey && env.kapso.phoneNumberId && env.kapso.to) {
+  const now = Date.now();
+  if (
+    env.kapso.apiKey &&
+    env.kapso.phoneNumberId &&
+    env.kapso.to &&
+    now - lastWhatsAppAt >= WHATSAPP_MIN_GAP_MS
+  ) {
+    lastWhatsAppAt = now;
     void fetch(`${env.kapso.apiUrl}/${env.kapso.phoneNumberId}/messages`, {
       method: 'POST',
       headers: { 'X-API-Key': env.kapso.apiKey, 'content-type': 'application/json' },

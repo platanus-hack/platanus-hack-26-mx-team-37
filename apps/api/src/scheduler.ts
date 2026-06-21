@@ -142,7 +142,8 @@ async function runOneRound(
   const base = pickRound(intervalMs);
   if (!base) return;
   try {
-    await evaluateAndRecord(tenant, base);
+    // notify:false — the 24/7 rounds are background traffic; they must not spam WhatsApp.
+    await evaluateAndRecord(tenant, base, { notify: false });
   } catch (err) {
     // A bad round must never crash the server or stop the schedule.
     console.error('[specter] scheduled round failed:', (err as Error).message);
